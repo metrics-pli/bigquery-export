@@ -3,6 +3,11 @@
   "version": "0.9.0",
   "description": "Google Big Query exporter for metrics-pli metrics.",
   "main": "dist/index.js",
+  "license": "MIT",
+  "author": "Christian Froehlingsdorf <chris@5cf.de> (http://5cf.de)",
+  "repository": {
+    "url": "https://github.com/metrics-pli/bigquery-export.git"
+  },
   "scripts": {
     "build": "yarn ts:build",
     "_start": "DEBUG=mpli:bqexport node dist/index.js",
