@@ -1,6 +1,6 @@
 {
   "name": "@metrics-pli/exporter-bigquery",
-  "version": "1.0.0",
+  "version": "0.9.0",
   "description": "Google Big Query exporter for metrics-pli metrics.",
   "main": "dist/index.js",
   "scripts": {
