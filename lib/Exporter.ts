@@ -6,10 +6,27 @@ import * as async from "async";
 import * as uuid from "uuid";
 
 import ConfigInterface from "./interfaces/ConfigInterface";
-import RecordInterface from "./interfaces/RecordInterface";
+import { ResultsetAdvancedInterface, TestInterface } from "@metrics-pli/types";
 
 const DEFAULT_SCHEMA = {
-
+    schema: {
+        fields: [
+            { name: "initialUrl", type: "STRING", mode: "REQUIRED" },
+            { name: "url", type: "STRING", mode: "REQUIRED" },
+            { name: "fullResult", type: "RECORD", mode: "REQUIRED", fields: [
+                {},
+            ] },
+            { name: "audits", type: "RECORD", mode: "REPEATED", fields: [
+                {name: "id", type: "STRING", mode: "NULLABLE"},
+                {name: "score", type: "INTEGER", mode: "NULLABLE"},
+                {name: "displayValue", type: "STRING", mode: "NULLABLE"},
+                {name: "rawValue", type: "STRING", mode: "NULLABLE"},
+                {name: "description", type: "STRING", mode: "NULLABLE"},
+                ],
+            },
+        ],
+    },
+    timePartitioning: { type: "DAY" },
 };
 
 export default class Exporter {
@@ -24,7 +41,7 @@ export default class Exporter {
     private bufferInterval: any;
     private lastBufferFlush: number;
 
-    constructor(config: ConfigInterface){
+    constructor(config: ConfigInterface) {
         this.config = config;
 
         this.bigQuery = new BigQuery(this.config.bigquery);
@@ -37,7 +54,7 @@ export default class Exporter {
         this.lastBufferFlush = Date.now();
     }
 
-    private ensureDatasetExists(callback: Function): void {
+    private ensureDatasetExists(callback: (error?: Error) => void): void {
 
         this.dataset.exists((error, exists) => {
 
@@ -53,7 +70,7 @@ export default class Exporter {
         });
     }
 
-    private checkTableExists(callback: Function): void {
+    private checkTableExists(callback: (error?: Error) => void): void {
 
         this.table.exists((error, exists) => {
 
@@ -66,9 +83,9 @@ export default class Exporter {
         });
     }
 
-    private ensureTableExists(callback: Function): void {
+    private ensureTableExists(callback: (error?: Error) => void): void {
 
-        if(this.initializedTable){
+        if (this.initializedTable) {
             debug("Table already exists.");
             return callback();
         }
@@ -92,8 +109,8 @@ export default class Exporter {
                 debug("Created table");
                 this.initializedTable = table;
                 callback();
-            }
-        )
+            },
+        );
     }
 
     private drainBuffer(): Promise<void> {
@@ -110,7 +127,7 @@ export default class Exporter {
                 () => this.buffer.length !== 0,
                 (next) => this.runBatch()
                     .then(() => next())
-                    .catch(error => next(error)),
+                    .catch((error) => next(error)),
                 (error) => {
                     this.bufferDraining = false;
 
@@ -119,7 +136,7 @@ export default class Exporter {
                     }
 
                     resolve();
-                }
+                },
             );
         });
     }
@@ -143,8 +160,8 @@ export default class Exporter {
     }
 
     private onBufferInterval(): void {
-        
-        if(Date.now() >= this.lastBufferFlush + this.config.batchTimeout){
+
+        if (Date.now() >= this.lastBufferFlush + this.config.batchTimeout) {
             return;
         }
 
@@ -157,7 +174,7 @@ export default class Exporter {
             });
     }
 
-    public async init(){
+    public async init() {
 
         debug("Initiating..");
 
@@ -165,10 +182,10 @@ export default class Exporter {
 
         await async.series(
             [
-                done => this.ensureDatasetExists(done),
-                done => this.checkTableExists(done),
-                done => this.ensureTableExists(done)
-            ]
+                (done) => this.ensureDatasetExists(done),
+                (done) => this.checkTableExists(done),
+                (done) => this.ensureTableExists(done),
+            ],
         );
 
         debug("Initiation done.");
@@ -176,7 +193,8 @@ export default class Exporter {
 
     public registerWith(metricsPli: any): void {
 
-        metricsPli.on("data", ({ result, test }) => {
+        metricsPli.on("data", (event) => {
+            const {result, test}: {result: ResultsetAdvancedInterface, test: TestInterface} = event;
             debug("Received metrics", test);
             this.putRecords([result]).catch((error) => {
                 // proxy error
@@ -187,15 +205,15 @@ export default class Exporter {
         debug("Registered with metricsPli instance.");
     }
 
-    public putRecords(records: RecordInterface[]): Promise<void> {
+    public putRecords(records: ResultsetAdvancedInterface[]): Promise<void> {
 
-        records.forEach(record => {
+        records.forEach((record) => {
 
             const row = {
                 insertId: uuid.v4(),
-                json: record
+                json: record,
             };
-            
+
             this.buffer.push(row);
         });
 
@@ -210,12 +228,11 @@ export default class Exporter {
 
         debug("Closing..");
 
-        if(this.bufferInterval){
+        if (this.bufferInterval) {
             clearInterval(this.bufferInterval);
         }
 
         await this.drainBuffer();
-
         debug("Closed.");
     }
 }

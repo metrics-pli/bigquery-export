@@ -38,9 +38,13 @@
     string-format-obj "^1.1.0"
     through2 "^2.0.3"
 
+"@metrics-pli/types@~1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@metrics-pli/types/-/types-1.0.0.tgz#ca49e4411f797411e57ba4c91a3ff300e942c92e"
+
 "@types/node@~9.6.6":
-  version "9.6.15"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-9.6.15.tgz#8a5a313ea0a43a95277235841be5d3f5fb3dfeda"
+  version "9.6.16"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-9.6.16.tgz#a20616348c3006277d458972ae16fe3b43b24ec1"
 
 ajv@^5.1.0:
   version "5.5.2"
@@ -838,8 +842,8 @@ tough-cookie@~2.3.3:
     punycode "^1.4.1"
 
 tslib@^1.8.0, tslib@^1.8.1:
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.9.0.tgz#e37a86fda8cbbaf23a057f473c9f4dc64e5fc2e8"
+  version "1.9.1"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.9.1.tgz#a5d1f0532a49221c87755cfcc89ca37197242ba7"
 
 tslint@~5.9.1:
   version "5.9.1"
@@ -886,7 +890,7 @@ util-deprecate@~1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
 
-uuid@^3.1.0, uuid@^3.2.1:
+uuid@^3.1.0, uuid@~3.2.1:
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.2.1.tgz#12c528bb9d58d0b9265d9a2f6f0fe8be17ff1f14"
 
