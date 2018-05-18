@@ -12,8 +12,8 @@ import { ResultsetInterface, ResultsetAdvancedInterface, TestInterface } from "@
 const DEFAULT_SCHEMA = {
     schema: {
         fields: [
-            { name: "score", type: "INTEGER", mode: "NULLABLE" },
-            { name: "raw_value", type: "INTEGER", mode: "NULLABLE" },
+            { name: "score", type: "FLOAT", mode: "NULLABLE" },
+            { name: "raw_value", type: "FLOAT", mode: "NULLABLE" },
             { name: "name", type: "STRING", mode: "NULLABLE" },
             { name: "type", type: "STRING", mode: "NULLABLE" },
             { name: "url", type: "STRING", mode: "NULLABLE" },
@@ -260,7 +260,7 @@ export default class Exporter {
 
     public putRecords(records: FlatResultInterface[]): Promise<void> {
 
-        debug("Addded", records.length, "records to buffer.");
+        debug("Added", records.length, "records to buffer.");
         records.forEach((record) => {
 
             const row = {
