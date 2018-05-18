@@ -218,13 +218,21 @@ export default class Exporter {
 
         this.bufferInterval = setInterval(this.onBufferInterval.bind(this), 1000);
 
-        await async.series(
-            [
-                (done) => this.ensureDatasetExists(done),
-                (done) => this.checkTableExists(done),
-                (done) => this.ensureTableExists(done),
-            ],
-        );
+        await new Promise((resolve, reject) => {
+            async.series(
+                [
+                    (done) => this.ensureDatasetExists(done),
+                    (done) => this.checkTableExists(done),
+                    (done) => this.ensureTableExists(done),
+                ], (error, result) => {
+
+                    if (error) {
+                        return reject(error);
+                    }
+
+                    resolve(result);
+            });
+        });
 
         debug("Initiation done.");
     }
