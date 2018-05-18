@@ -166,7 +166,7 @@ export default class Exporter {
 
     private onBufferInterval(): void {
 
-        if (Date.now() >= this.lastBufferFlush + this.config.batchTimeout) {
+        if (Date.now() < this.lastBufferFlush + this.config.batchTimeout) {
             return;
         }
 
@@ -240,14 +240,14 @@ export default class Exporter {
     public registerWith(metricsPli: any): void {
 
         metricsPli.on("data", (event) => {
-            const {result, test}: {result: ResultsetInterface, test: TestInterface} = event;
+            const {results, test}: {results: ResultsetInterface, test: TestInterface} = event;
 
-            if (!result.advanced) {
+            if (!results.advanced) {
                 return;
             }
 
-            const advanced: ResultsetAdvancedInterface = result.advanced;
-            debug("Received metrics for", result.advanced.url);
+            const advanced: ResultsetAdvancedInterface = results.advanced;
+            debug("Received metrics for", results.advanced.url);
 
             this.putRecords(this.mapResultToFlatRows(advanced, test)).catch((error) => {
                 // proxy error

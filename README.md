@@ -11,14 +11,17 @@ The bigquery config fields accepts all parameters that you can pass to
 import MetricsPli, { ConfigInterface, TestInterface } from "@metrics-pli/core";
 import Exporter from "@metrics-pli/exporter-bigquery";
 
+const keyFilename = "/Users/jondoe/Documents/jons-plat-123.json";
+
 const exporterConfig = {
     bigquery: {
         projectId: "123123123",
+        keyFilename,
     },
     dataset: "my_metrics_dataset",
     table: "my_metrics_table",
-    batchSize: 10,
-    batchTimeout: 60 * 1000
+    batchSize: 75,
+    batchTimeout: 60 * 1000,
 };
 
 const tests: TestInterface[] = [{
