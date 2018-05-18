@@ -6,24 +6,18 @@ import * as async from "async";
 import * as uuid from "uuid";
 
 import ConfigInterface from "./interfaces/ConfigInterface";
-import { ResultsetAdvancedInterface, TestInterface } from "@metrics-pli/types";
+import FlatResultInterface from "./interfaces/FlatResultInterface";
+import { ResultsetInterface, ResultsetAdvancedInterface, TestInterface } from "@metrics-pli/types";
 
 const DEFAULT_SCHEMA = {
     schema: {
         fields: [
-            { name: "initialUrl", type: "STRING", mode: "REQUIRED" },
-            { name: "url", type: "STRING", mode: "REQUIRED" },
-            { name: "fullResult", type: "RECORD", mode: "REQUIRED", fields: [
-                {},
-            ] },
-            { name: "audits", type: "RECORD", mode: "REPEATED", fields: [
-                {name: "id", type: "STRING", mode: "NULLABLE"},
-                {name: "score", type: "INTEGER", mode: "NULLABLE"},
-                {name: "displayValue", type: "STRING", mode: "NULLABLE"},
-                {name: "rawValue", type: "STRING", mode: "NULLABLE"},
-                {name: "description", type: "STRING", mode: "NULLABLE"},
-                ],
-            },
+            { name: "score", type: "INTEGER", mode: "NULLABLE" },
+            { name: "raw_value", type: "INTEGER", mode: "NULLABLE" },
+            { name: "name", type: "STRING", mode: "NULLABLE" },
+            { name: "type", type: "STRING", mode: "NULLABLE" },
+            { name: "url", type: "STRING", mode: "NULLABLE" },
+            { name: "tested_at", type: "TIMESTAMP", mode: "NULLABLE" },
         ],
     },
     timePartitioning: { type: "DAY" },
@@ -174,6 +168,39 @@ export default class Exporter {
             });
     }
 
+    private mapResultToFlatRows(result: ResultsetAdvancedInterface, test: TestInterface): FlatResultInterface[] {
+        return result.audits.map((audit) => {
+
+            let rawValue: any = audit.rawValue;
+            let score: any = audit.score;
+
+            if (typeof rawValue !== "number") {
+                rawValue = parseInt(rawValue, 10);
+                if (isNaN(rawValue)) {
+                    rawValue = -1;
+                }
+            }
+
+            if (typeof score !== "number") {
+                score = parseInt(score, 10);
+                if (isNaN(score)) {
+                    score = -1;
+                }
+            }
+
+            const flattened: FlatResultInterface = {
+                score,
+                raw_value: rawValue,
+                name: test.name,
+                type: audit.id,
+                url: test.url,
+                tested_at: new Date().toISOString(),
+            };
+
+            return flattened;
+        });
+    }
+
     public async init() {
 
         debug("Initiating..");
@@ -194,9 +221,16 @@ export default class Exporter {
     public registerWith(metricsPli: any): void {
 
         metricsPli.on("data", (event) => {
-            const {result, test}: {result: ResultsetAdvancedInterface, test: TestInterface} = event;
-            debug("Received metrics", test);
-            this.putRecords([result]).catch((error) => {
+            const {result, test}: {result: ResultsetInterface, test: TestInterface} = event;
+
+            if (!result.advanced) {
+                return;
+            }
+
+            const advanced: ResultsetAdvancedInterface = result.advanced;
+            debug("Received metrics for", result.advanced.url);
+
+            this.putRecords(this.mapResultToFlatRows(advanced, test)).catch((error) => {
                 // proxy error
                 metricsPli.emit("error", error);
             });
@@ -205,7 +239,7 @@ export default class Exporter {
         debug("Registered with metricsPli instance.");
     }
 
-    public putRecords(records: ResultsetAdvancedInterface[]): Promise<void> {
+    public putRecords(records: FlatResultInterface[]): Promise<void> {
 
         records.forEach((record) => {
 
