@@ -39,7 +39,7 @@ const config: ConfigInterface = {};
   metricsPli.on("error", console.error);
   metricsPli.on("info", console.info);
  
-  metricsPli.run();
+  await metricsPli.run();
   await bqExporter.close();
 })();
 ```

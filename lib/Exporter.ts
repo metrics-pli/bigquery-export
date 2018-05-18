@@ -57,9 +57,11 @@ export default class Exporter {
             }
 
             if (!exists) {
+                debug("Dataset does not exist, creating..");
                 return this.dataset.create(callback);
             }
 
+            debug("Dataset exists.");
             callback();
         });
     }
@@ -70,6 +72,12 @@ export default class Exporter {
 
             if (error) {
                 return callback(new Error(`Failed to check if table exists: ${JSON.stringify(error)}`));
+            }
+
+            if (!exists) {
+                debug("Table does not exist.");
+            } else {
+                debug("Table does exist", exists);
             }
 
             this.initializedTable = exists;
@@ -83,6 +91,8 @@ export default class Exporter {
             debug("Table already exists.");
             return callback();
         }
+
+        debug("Creating table..");
 
         this.table.create(DEFAULT_SCHEMA, (error, table, apiResponse) => {
 
@@ -140,6 +150,7 @@ export default class Exporter {
         const rows = this.buffer.splice(0, Math.min(this.config.batchSize, this.buffer.length));
         const options = { raw: true };
 
+        debug("Running batch for", rows.length, "rows.");
         return new Promise((resolve, reject) => this.table.insert(rows, options, (error, apiResponse) => {
 
             if (error) {
@@ -241,6 +252,7 @@ export default class Exporter {
 
     public putRecords(records: FlatResultInterface[]): Promise<void> {
 
+        debug("Addded", records.length, "records to buffer.");
         records.forEach((record) => {
 
             const row = {
